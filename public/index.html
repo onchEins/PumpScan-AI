@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Dropshipping</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0b0b12; color: #eee; margin: 0; padding: 2rem 1rem; }
+    main { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 2.6rem; margin: 0; background: linear-gradient(135deg, #ff7a18, #ffb800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    section { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 1.25rem; margin-top: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    input, button { font: inherit; padding: .55rem .8rem; border-radius: 8px; border: 1px solid #333; background: #15151f; color: #eee; margin: .25rem 0; }
+    button { background: linear-gradient(135deg, #ff7a18, #ffb800); color: #000; font-weight: 700; border: 0; cursor: pointer; }
+    pre { white-space: pre-wrap; background: #111; padding: 1rem; border-radius: 8px; }
+    .row { display: flex; flex-wrap: wrap; gap: .5rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🛒 AI Dropshipping</h1>
+  <p>Find winning products, generate listings with AI and check your profit.</p>
+
+  <section>
+    <h2>🔥 Trending products</h2>
+    <div style="overflow-x:auto"><table id="products"><thead><tr><th>Product</th><th>Category</th><th>Trend</th><th>Competition</th><th>Price</th><th>Profit</th><th>Margin</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section>
+    <h2>✍️ AI listing generator</h2>
+    <div class="row">
+      <input id="lname" placeholder="Product name">
+      <input id="lcat" placeholder="Category">
+      <button id="lbtn">Generate</button>
+    </div>
+    <pre id="lout"></pre>
+  </section>
+
+  <section>
+    <h2>💰 Profit calculator</h2>
+    <div class="row">
+      <input id="cost" type="number" step="0.01" placeholder="Supplier cost">
+      <input id="ship" type="number" step="0.01" placeholder="Shipping">
+      <input id="ads" type="number" step="0.01" placeholder="Ad cost / sale">
+      <input id="price" type="number" step="0.01" placeholder="Sale price">
+      <button id="pbtn">Calculate</button>
+    </div>
+    <pre id="pout"></pre>
+  </section>
+</main>
+<script>
+  const post = (url, body) => fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json());
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  fetch("/api/products").then(r => r.json()).then(({ data }) => {
+    document.querySelector("#products tbody").innerHTML = data.map(p =>
+      `<tr><td>${esc(p.name)}</td><td>${esc(p.category)}</td><td>${p.trendScore}</td><td>${p.competition}</td><td>$${p.suggestedPrice}</td><td>$${p.estimate.netProfit}</td><td>${p.estimate.margin}%</td></tr>`).join("");
+  });
+
+  document.getElementById("lbtn").onclick = async () => {
+    const out = document.getElementById("lout");
+    out.textContent = "Generating...";
+    const r = await post("/api/listing", { name: lname.value, category: lcat.value });
+    out.textContent = JSON.stringify(r.data || r, null, 2);
+  };
+
+  document.getElementById("pbtn").onclick = async () => {
+    const n = id => parseFloat(document.getElementById(id).value) || 0;
+    const r = await post("/api/profit", { supplierCost: n("cost"), shipping: n("ship"), adCost: n("ads"), price: n("price") });
+    document.getElementById("pout").textContent = JSON.stringify(r.data || r, null, 2);
+  };
+</script>
+</body>
+</html>

@@ -1,5 +1,3 @@
 node_modules/
-nnpm/local/
-.vite/
-stractory/
-/.git/
+.env
+npm-debug.log*
